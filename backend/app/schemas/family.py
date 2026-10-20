@@ -8,6 +8,7 @@ class OnboardingRequest(BaseModel):
     child_full_name: str
     age: int
     consent_given: bool
+    initial_balance: float = 0.0
 
 
 class OnboardingResponse(BaseModel):
@@ -21,4 +22,7 @@ class OnboardingResponse(BaseModel):
 
 class FamilyChildOut(BaseModel):
     user: UserOut
+    # Основная (первая выпущенная) карта — для совместимости с текущим фронтом.
     card: CardOut
+    # Все карты ребёнка — у ребёнка их может быть несколько.
+    cards: list[CardOut] = []

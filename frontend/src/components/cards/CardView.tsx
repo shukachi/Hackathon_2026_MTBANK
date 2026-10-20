@@ -7,6 +7,12 @@ function maskNumber(card: Card): string {
   return "**** **** **** " + card.id.slice(-4).padStart(4, "0");
 }
 
+const DESIGN_LABEL: Record<string, string> = {
+  child: "Детская",
+  teen: "Подростковая",
+  adult: "Взрослая",
+};
+
 interface CardViewProps {
   card: Card;
   ownerName?: string;
@@ -35,6 +41,8 @@ export default function CardView({ card, ownerName, onCardUpdated, showControls 
     }
   };
 
+  const balance = typeof current.balance === "number" ? current.balance : 0;
+
   return (
     <div className="stack">
       <div className={`card-visual${blocked ? " blocked" : ""}`}>
@@ -49,13 +57,40 @@ export default function CardView({ card, ownerName, onCardUpdated, showControls 
         <div className="card-number">{maskNumber(current)}</div>
         <div className="card-footer">
           <span>Moby Family</span>
-          {typeof current.balance === "number" && (
-            <span className="card-balance" style={{ fontSize: 16 }}>
-              {current.balance.toFixed(2)} BYN
-            </span>
-          )}
+          <span className="card-balance" style={{ fontSize: 16 }}>
+            {balance.toFixed(2)} BYN
+          </span>
         </div>
       </div>
+
+      <div className="card-details">
+        <div className="card-details-title">Реквизиты карты</div>
+        <div className="card-details-row">
+          <span className="muted">Номер карты</span>
+          <strong>{maskNumber(current)}</strong>
+        </div>
+        <div className="card-details-row">
+          <span className="muted">Доступно средств</span>
+          <strong className={balance < 0 ? "card-details-negative" : "card-details-balance"}>
+            {balance.toFixed(2)} BYN
+          </strong>
+        </div>
+        <div className="card-details-row">
+          <span className="muted">Статус</span>
+          <span className={`badge ${blocked ? "badge-danger" : "badge-success"}`}>
+            {blocked ? "Заблокирована" : "Активна"}
+          </span>
+        </div>
+        <div className="card-details-row">
+          <span className="muted">Тип карты</span>
+          <span>{current.design ? (DESIGN_LABEL[current.design] ?? current.design) : "—"}</span>
+        </div>
+        <div className="card-details-row">
+          <span className="muted">Выпущена</span>
+          <span>{current.created_at ? formatDate(current.created_at) : "—"}</span>
+        </div>
+      </div>
+
       {error && <div className="alert alert-error">{error}</div>}
       {showControls && (
         <button type="button" className={`btn ${blocked ? "btn-secondary" : "btn-danger"} btn-sm`} onClick={toggleBlock} disabled={loading}>
@@ -64,4 +99,10 @@ export default function CardView({ card, ownerName, onCardUpdated, showControls 
       )}
     </div>
   );
+}
+
+function formatDate(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString("ru-RU", { year: "numeric", month: "long", day: "numeric" });
 }

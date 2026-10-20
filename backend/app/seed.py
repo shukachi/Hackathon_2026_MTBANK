@@ -91,9 +91,12 @@ def seed() -> None:
         db.add_all([anna, max_])
         db.flush()
 
-        anna_card = Card(user_id=anna.id, masked_number="**** **** **** 1001", status=CardStatusEnum.active, design=CardDesignEnum.child)
-        max_card = Card(user_id=max_.id, masked_number="**** **** **** 1602", status=CardStatusEnum.active, design=CardDesignEnum.teen)
-        db.add_all([anna_card, max_card])
+        # У Анны две карты: основная и дополнительная «на мечту» — показываем,
+        # что у ребёнка может быть несколько карт.
+        anna_card = Card(user_id=anna.id, masked_number="**** **** **** 1001", status=CardStatusEnum.active, design=CardDesignEnum.child, balance=250.0)
+        anna_extra_card = Card(user_id=anna.id, masked_number="**** **** **** 1002", status=CardStatusEnum.active, design=CardDesignEnum.child, balance=80.0)
+        max_card = Card(user_id=max_.id, masked_number="**** **** **** 1602", status=CardStatusEnum.active, design=CardDesignEnum.teen, balance=180.0)
+        db.add_all([anna_card, anna_extra_card, max_card])
         db.flush()
 
         anna_loyalty = LoyaltyAccount(user_id=anna.id, points=0)
@@ -128,10 +131,11 @@ def seed() -> None:
         db.flush()
 
         # Кешбэк орешками за уже совершённые операции — чтобы у ребёнка и подростка
-        # был непустой счёт орешков сразу после сида.
+        # был непустой счёт орешков сразу после сида. Орешки начисляются владельцу
+        # карты, а не тому, кто совершил операцию: счёт у ребёнка и родителя раздельный.
+        card_owner = {anna_card.id: anna.id, anna_extra_card.id: anna.id, max_card.id: max_.id}
         for tx in transactions:
-            owner_id = anna.id if tx.card_id == anna_card.id else max_.id
-            loyalty_service.award_cashback(db, owner_id, tx.category, tx.amount)
+            loyalty_service.award_cashback(db, card_owner[tx.card_id], tx.category, tx.amount)
 
         # Лимиты.
         db.add(Limit(child_id=anna.id, category=CategoryEnum.sweets, amount=50.0, period=PeriodEnum.week))

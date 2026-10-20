@@ -19,6 +19,7 @@ class Base(DeclarativeBase):
 ADDED_COLUMNS: list[tuple[str, str, str]] = [
     # (таблица, колонка, SQL-тип)
     ("loyalty_accounts", "converted_byn", "FLOAT DEFAULT 0.0"),
+    ("cards", "balance", "FLOAT DEFAULT 0.0"),
 ]
 
 

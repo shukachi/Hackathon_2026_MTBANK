@@ -5,7 +5,7 @@ import CardView from "../../components/cards/CardView";
 import TransactionList from "../../components/transactions/TransactionList";
 import PointsWidget from "../../components/loyalty/PointsWidget";
 import { useAuth } from "../../context/AuthContext";
-import { useOwnCard } from "../../hooks/useOwnCard";
+import { useOwnCards } from "../../hooks/useOwnCards";
 import * as transactionsApi from "../../api/transactions";
 import * as loyaltyApi from "../../api/loyalty";
 import type { Loyalty, SimulateResult, Transaction } from "../../types";
@@ -14,7 +14,7 @@ import { CATEGORIES, categoryLabel } from "../../categories";
 
 export default function Home() {
   const { user } = useAuth();
-  const { card, loading: cardLoading, error: cardError } = useOwnCard();
+  const { cards, mainCard: card, setCards, loading: cardLoading, error: cardError } = useOwnCards();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loadingTx, setLoadingTx] = useState(true);
   const [txError, setTxError] = useState<string | null>(null);
@@ -22,6 +22,7 @@ export default function Home() {
   const [loyalty, setLoyalty] = useState<Loyalty | null>(null);
   const [loadingLoyalty, setLoadingLoyalty] = useState(true);
 
+  const [selectedCardId, setSelectedCardId] = useState<string>("");
   const [amount, setAmount] = useState("10");
   const [category, setCategory] = useState<string>(CATEGORIES[0]);
   const [merchant, setMerchant] = useState("");
@@ -68,21 +69,29 @@ export default function Home() {
     };
   }, [user]);
 
+  // Покупка идёт с выбранной карты, иначе — с основной.
+  const activeCard = cards.find((c) => c.id === selectedCardId) ?? card;
+
   const handleSimulate = async (e: FormEvent) => {
     e.preventDefault();
-    if (!card) return;
+    if (!activeCard) return;
     setSimulating(true);
     setSimError(null);
     setSimResult(null);
     try {
       const res = await transactionsApi.simulateTransaction({
-        card_id: card.id,
+        card_id: activeCard.id,
         amount: Number(amount) || 0,
         category,
         merchant: merchant || "Демо-магазин",
       });
       setSimResult(res);
       setTransactions((prev) => [res.transaction, ...prev]);
+
+      // Карта после покупки — с новым балансом (приходит вместе с ответом).
+      if (res.card) {
+        setCards((prev) => prev.map((c) => (c.id === res.card!.id ? res.card! : c)));
+      }
 
       // Кешбэк изменил баланс орешков — перезапрашиваем счёт.
       if (res.cashback_points) {
@@ -106,15 +115,28 @@ export default function Home() {
 
       <div className="grid-2">
         <div className="card">
-          <div className="card-title">Моя карта</div>
+          <div className="card-title">{cards.length > 1 ? "Мои карты" : "Моя карта"}</div>
           {cardLoading ? (
             <div className="muted">Загрузка карты...</div>
           ) : cardError ? (
             <div className="alert alert-error">{cardError}</div>
-          ) : card ? (
-            <CardView card={card} showControls={false} />
-          ) : (
+          ) : cards.length === 0 ? (
             <div className="empty-state">Карта пока не привязана к профилю.</div>
+          ) : (
+            <div className="stack" style={{ gap: 16 }}>
+              {cards.map((c, idx) => (
+                <div key={c.id} className="stack" style={{ gap: 8 }}>
+                  {cards.length > 1 && (
+                    <div className="row-between">
+                      <strong style={{ fontSize: 14 }}>
+                        {idx === 0 ? "Основная карта" : `Дополнительная карта ${idx}`}
+                      </strong>
+                    </div>
+                  )}
+                  <CardView card={c} showControls={false} />
+                </div>
+              ))}
+            </div>
           )}
         </div>
 
@@ -142,7 +164,19 @@ export default function Home() {
               <label htmlFor="sim-merchant">Продавец</label>
               <input id="sim-merchant" value={merchant} onChange={(e) => setMerchant(e.target.value)} placeholder="Например, Соседний магазин" />
             </div>
-            <button type="submit" className="btn btn-primary" disabled={simulating || !card}>
+            {cards.length > 1 && (
+              <div className="form-field">
+                <label htmlFor="sim-card">С какой карты оплачиваем</label>
+                <select id="sim-card" value={activeCard?.id ?? ""} onChange={(e) => setSelectedCardId(e.target.value)}>
+                  {cards.map((c, idx) => (
+                    <option key={c.id} value={c.id}>
+                      {idx === 0 ? "Основная" : `Дополнительная ${idx}`} — {c.masked_number} ({(c.balance ?? 0).toFixed(2)} BYN)
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <button type="submit" className="btn btn-primary" disabled={simulating || !activeCard}>
               {simulating ? "Оплачиваем..." : "Совершить покупку"}
             </button>
           </form>
@@ -164,6 +198,11 @@ export default function Home() {
                   Покупка заблокирована лимитом.{" "}
                   {simResult.reason ?? "Превышен лимит по этой категории."}
                 </>
+              )}
+              {simResult.insufficient_funds && (
+                <div className="nut-warning" style={{ marginTop: 8 }}>
+                  На карте не хватило средств — баланс ушёл в минус. Попросите родителя пополнить карту.
+                </div>
               )}
             </div>
           )}

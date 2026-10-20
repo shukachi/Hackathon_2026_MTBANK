@@ -72,11 +72,32 @@ export default function Overview() {
                   <span className="badge badge-neutral">{c.user.role === "teen" ? "Подросток" : "Ребёнок"}</span>
                 </div>
               </div>
-              <CardView
-                card={c.card}
-                ownerName={c.user.full_name}
-                onCardUpdated={(card) => updateChildCard(c.user.id, card)}
-              />
+              <div className="stack" style={{ gap: 12 }}>
+                {(c.cards && c.cards.length > 1 ? c.cards : [c.card]).map((card, idx) => (
+                  <div key={card.id} className="stack" style={{ gap: 8 }}>
+                    {c.cards && c.cards.length > 1 && (
+                      <div className="row-between">
+                        <strong style={{ fontSize: 13 }}>
+                          {idx === 0 ? "Основная карта" : `Дополнительная карта ${idx}`}
+                        </strong>
+                        <span className="muted" style={{ fontSize: 13 }}>
+                          {(card.balance ?? 0).toFixed(2)} BYN
+                        </span>
+                      </div>
+                    )}
+                    <CardView
+                      card={card}
+                      ownerName={c.user.full_name}
+                      onCardUpdated={(updated) => updateChildCard(c.user.id, updated)}
+                    />
+                  </div>
+                ))}
+                {c.cards && c.cards.length > 1 && (
+                  <Link to="/parent/cards" className="btn btn-secondary btn-sm" style={{ alignSelf: "flex-start" }}>
+                    Управление картами
+                  </Link>
+                )}
+              </div>
               <div>
                 <div className="card-title" style={{ marginBottom: 6 }}>
                   Последние операции

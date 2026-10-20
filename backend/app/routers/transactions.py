@@ -8,6 +8,7 @@ from app.db import get_db
 from app.models.card import Card
 from app.models.transaction import CategoryEnum, Transaction, TransactionStatusEnum
 from app.models.user import RoleEnum, User
+from app.schemas.card import CardOut
 from app.schemas.transaction import SimulateTransactionRequest, SimulateTransactionResponse, TransactionOut
 from app.services import limits_engine, loyalty_service
 
@@ -82,15 +83,23 @@ def simulate_transaction(
     # Кешбэк орешками начисляем только по одобренным операциям —
     # заблокированная лимитом покупка не должна приносить бонусы.
     cashback_points = 0
+    insufficient_funds = False
     if not blocked:
+        card.balance -= payload.amount
+        # Баланс не блокирует покупку (единственный блокирующий механизм — лимит),
+        # но о нехватке средств честно предупреждаем в ответе и в UI.
+        insufficient_funds = card.balance < 0
         cashback_points = loyalty_service.award_cashback(db, card.user_id, payload.category, payload.amount)
 
     db.commit()
     db.refresh(transaction)
+    db.refresh(card)
 
     return SimulateTransactionResponse(
         transaction=TransactionOut.model_validate(transaction),
         blocked=blocked,
         reason=reason,
         cashback_points=cashback_points,
+        insufficient_funds=insufficient_funds,
+        card=CardOut.model_validate(card),
     )

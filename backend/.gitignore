@@ -4,6 +4,10 @@ __pycache__/
 .env
 app.db
 test.db
+# Временные базы для ручных прогонов и тестовых агентов
+*.db-journal
+e2e*.db
+agent_test*.db
 .pytest_cache/
 *.log
 cookies.txt

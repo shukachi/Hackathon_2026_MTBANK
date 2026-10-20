@@ -471,6 +471,44 @@ p {
   color: var(--text-on-blue-muted);
 }
 
+/* Реквизиты карты: номер, баланс, статус, тип */
+.card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+}
+
+.card-details-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.card-details-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.card-details-balance {
+  color: var(--moby-green);
+  font-size: 16px;
+}
+
+.card-details-negative {
+  color: var(--moby-red);
+  font-size: 16px;
+}
+
 .chat-window {
   display: flex;
   flex-direction: column;
@@ -608,6 +646,16 @@ p {
 .nut-convert-preview strong {
   font-size: 18px;
   color: var(--moby-green);
+}
+
+/* Предупреждение о нехватке средств на карте */
+.nut-warning {
+  font-size: 13px;
+  color: #9c2327;
+  background: rgba(229, 72, 77, 0.08);
+  border: 1px solid rgba(229, 72, 77, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
 }
 
 table.simple-table {

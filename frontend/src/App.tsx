@@ -11,6 +11,7 @@ import Overview from "./pages/ParentDashboard/Overview";
 import LimitsPage from "./pages/ParentDashboard/LimitsPage";
 import AccessRequestsPage from "./pages/ParentDashboard/AccessRequestsPage";
 import QuestsManagePage from "./pages/ParentDashboard/QuestsManagePage";
+import CardsPage from "./pages/ParentDashboard/CardsPage";
 import ParentNutsPage from "./pages/ParentDashboard/NutsPage";
 import AiCommandPage from "./pages/ParentDashboard/AiCommandPage";
 
@@ -80,6 +81,14 @@ export default function App() {
             element={
               <ProtectedRoute requireRole="parent">
                 <QuestsManagePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parent/cards"
+            element={
+              <ProtectedRoute requireRole="parent">
+                <CardsPage />
               </ProtectedRoute>
             }
           />

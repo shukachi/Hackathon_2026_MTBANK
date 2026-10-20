@@ -20,7 +20,10 @@ export interface Card {
   user_id?: string;
   masked_number?: string;
   status: "active" | "blocked" | string;
+  design?: "child" | "teen" | "adult" | string;
+  /** Доступные средства на карте, BYN. */
   balance?: number;
+  created_at?: string;
 }
 
 export interface OnboardingResult {
@@ -33,7 +36,10 @@ export interface OnboardingResult {
 
 export interface FamilyChild {
   user: User;
+  /** Основная (первая выпущенная) карта. */
   card: Card;
+  /** Все карты ребёнка — их может быть несколько. */
+  cards?: Card[];
 }
 
 export interface Transaction {
@@ -53,6 +59,10 @@ export interface SimulateResult {
   reason?: string | null;
   /** Сколько орешков начислено кешбэком за операцию. */
   cashback_points?: number;
+  /** Баланс карты ушёл в минус — покупка прошла, но денег не хватило. */
+  insufficient_funds?: boolean;
+  /** Карта после операции — с актуальным балансом. */
+  card?: Card;
 }
 
 export type Period = "week" | "month";

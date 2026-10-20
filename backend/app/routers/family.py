@@ -98,6 +98,7 @@ def onboarding(
         masked_number=_generate_masked_number(),
         status=CardStatusEnum.active,
         design=design,
+        balance=payload.initial_balance,
     )
     db.add(card)
 
@@ -122,7 +123,10 @@ def list_children(
     parent: User = Depends(get_current_parent),
 ) -> list[FamilyChildOut]:
     """Все дети текущего родителя вместе с их картами — чтобы фронтенд мог
-    восстановить список семьи после перезагрузки страницы без localStorage-кэша."""
+    восстановить список семьи после перезагрузки страницы без localStorage-кэша.
+
+    У ребёнка может быть несколько карт: в `cards` — все они, в `card` —
+    основная (первая выпущенная), для обратной совместимости с фронтом."""
     children = (
         db.query(User)
         .filter(User.family_id == parent.family_id, User.parent_id == parent.id)
@@ -130,8 +134,19 @@ def list_children(
     )
     result: list[FamilyChildOut] = []
     for child in children:
-        card = db.query(Card).filter(Card.user_id == child.id).first()
-        if card is None:
+        cards = (
+            db.query(Card)
+            .filter(Card.user_id == child.id)
+            .order_by(Card.created_at.asc())
+            .all()
+        )
+        if not cards:
             continue
-        result.append(FamilyChildOut(user=UserOut.model_validate(child), card=CardOut.model_validate(card)))
+        result.append(
+            FamilyChildOut(
+                user=UserOut.model_validate(child),
+                card=CardOut.model_validate(cards[0]),
+                cards=[CardOut.model_validate(c) for c in cards],
+            )
+        )
     return result
