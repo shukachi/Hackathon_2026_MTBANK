@@ -6,6 +6,7 @@ from app.core.security import COOKIE_NAME, create_access_token, hash_password, v
 from app.db import get_db
 from app.models.user import Family, RoleEnum, User
 from app.schemas.user import LoginRequest, RegisterRequest, UserOut
+from app.services import loyalty_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -42,6 +43,11 @@ def register(payload: RegisterRequest, response: Response, db: Session = Depends
         family_id=family.id,
     )
     db.add(user)
+    db.flush()
+
+    # У родителя свой счёт орешков — баллы копятся раздельно у родителя и ребёнка.
+    loyalty_service.get_or_create_account(db, user.id)
+
     db.commit()
     db.refresh(user)
 

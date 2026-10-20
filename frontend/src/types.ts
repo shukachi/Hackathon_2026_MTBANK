@@ -51,6 +51,8 @@ export interface SimulateResult {
   transaction: Transaction;
   blocked: boolean;
   reason?: string | null;
+  /** Сколько орешков начислено кешбэком за операцию. */
+  cashback_points?: number;
 }
 
 export type Period = "week" | "month";
@@ -86,9 +88,29 @@ export interface LoyaltyEntry {
   created_at: string;
 }
 
+export interface LoyaltyConversion {
+  id: string;
+  points_spent: number;
+  byn_amount: number;
+  created_at: string;
+}
+
 export interface Loyalty {
   points: number;
+  /** Деньги, полученные за конвертированные орешки (1 BYN = points_per_byn орешков). */
+  converted_byn: number;
+  /** Курс конвертации с сервера: сколько орешков даёт 1 BYN. */
+  points_per_byn: number;
   history: LoyaltyEntry[];
+  conversions: LoyaltyConversion[];
+}
+
+export interface ConvertPointsResult {
+  points_spent: number;
+  byn_amount: number;
+  points_left: number;
+  converted_byn: number;
+  account: Loyalty;
 }
 
 export type AccessRequestStatus = "pending" | "approved" | "denied" | string;

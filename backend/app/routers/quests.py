@@ -5,10 +5,10 @@ from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_parent, get_current_user
 from app.db import get_db
-from app.models.loyalty import LoyaltyAccount, LoyaltyHistory
 from app.models.quest import Quest, QuestStatusEnum
 from app.models.user import RoleEnum, User
 from app.schemas.quest import QuestCreateRequest, QuestOut
+from app.services import loyalty_service
 
 router = APIRouter(prefix="/quests", tags=["quests"])
 
@@ -65,14 +65,11 @@ def complete_quest(quest_id: int, db: Session = Depends(get_db), user: User = De
     quest.status = QuestStatusEnum.completed
     quest.completed_at = datetime.now(timezone.utc)
 
-    loyalty = db.query(LoyaltyAccount).filter(LoyaltyAccount.user_id == user.id).first()
-    if not loyalty:
-        loyalty = LoyaltyAccount(user_id=user.id, points=0)
-        db.add(loyalty)
-        db.flush()
-
-    loyalty.points += quest.reward_points
-    db.add(LoyaltyHistory(account_id=loyalty.id, delta=quest.reward_points, reason=f"Квест выполнен: {quest.title}"))
+    # Награда за квест идёт орешками на счёт ребёнка.
+    if quest.reward_points > 0:
+        loyalty_service.award_points(
+            db, user.id, quest.reward_points, reason=f"Квест выполнен: {quest.title}"
+        )
 
     db.commit()
     db.refresh(quest)

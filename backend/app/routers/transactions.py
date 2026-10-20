@@ -9,7 +9,7 @@ from app.models.card import Card
 from app.models.transaction import CategoryEnum, Transaction, TransactionStatusEnum
 from app.models.user import RoleEnum, User
 from app.schemas.transaction import SimulateTransactionRequest, SimulateTransactionResponse, TransactionOut
-from app.services import limits_engine
+from app.services import limits_engine, loyalty_service
 
 router = APIRouter(prefix="/transactions", tags=["transactions"])
 
@@ -77,6 +77,14 @@ def simulate_transaction(
         status=TransactionStatusEnum.blocked_by_limit if blocked else TransactionStatusEnum.approved,
     )
     db.add(transaction)
+    db.flush()
+
+    # Кешбэк орешками начисляем только по одобренным операциям —
+    # заблокированная лимитом покупка не должна приносить бонусы.
+    cashback_points = 0
+    if not blocked:
+        cashback_points = loyalty_service.award_cashback(db, card.user_id, payload.category, payload.amount)
+
     db.commit()
     db.refresh(transaction)
 
@@ -84,4 +92,5 @@ def simulate_transaction(
         transaction=TransactionOut.model_validate(transaction),
         blocked=blocked,
         reason=reason,
+        cashback_points=cashback_points,
     )

@@ -28,3 +28,5 @@ class SimulateTransactionResponse(BaseModel):
     transaction: TransactionOut
     blocked: bool
     reason: str | None = None
+    # Сколько орешков начислено кешбэком за эту операцию (0 — если кешбэка нет).
+    cashback_points: int = 0

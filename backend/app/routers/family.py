@@ -9,11 +9,11 @@ from app.core.deps import get_current_parent
 from app.core.security import hash_password
 from app.db import get_db
 from app.models.card import Card, CardDesignEnum, CardStatusEnum
-from app.models.loyalty import LoyaltyAccount
 from app.models.user import RoleEnum, User
 from app.schemas.card import CardOut
 from app.schemas.family import FamilyChildOut, OnboardingRequest, OnboardingResponse
 from app.schemas.user import UserOut
+from app.services import loyalty_service
 
 router = APIRouter(prefix="/family", tags=["family"])
 
@@ -101,8 +101,7 @@ def onboarding(
     )
     db.add(card)
 
-    loyalty = LoyaltyAccount(user_id=child.id, points=0)
-    db.add(loyalty)
+    loyalty_service.get_or_create_account(db, child.id)
 
     db.commit()
     db.refresh(child)

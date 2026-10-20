@@ -39,3 +39,13 @@ def reset_db():
 @pytest.fixture
 def client():
     return TestClient(app)
+
+
+@pytest.fixture
+def db():
+    """Прямой доступ к тестовой сессии БД — для сервисных тестов."""
+    session = TestingSessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()

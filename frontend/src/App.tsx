@@ -11,10 +11,12 @@ import Overview from "./pages/ParentDashboard/Overview";
 import LimitsPage from "./pages/ParentDashboard/LimitsPage";
 import AccessRequestsPage from "./pages/ParentDashboard/AccessRequestsPage";
 import QuestsManagePage from "./pages/ParentDashboard/QuestsManagePage";
+import ParentNutsPage from "./pages/ParentDashboard/NutsPage";
 import AiCommandPage from "./pages/ParentDashboard/AiCommandPage";
 
 import Home from "./pages/ChildDashboard/Home";
 import GoalsPage from "./pages/ChildDashboard/GoalsPage";
+import NutsPage from "./pages/ChildDashboard/NutsPage";
 import QuestsPage from "./pages/ChildDashboard/QuestsPage";
 import RequestAccessPage from "./pages/ChildDashboard/RequestAccessPage";
 import AiChatPage from "./pages/ChildDashboard/AiChatPage";
@@ -82,6 +84,14 @@ export default function App() {
             }
           />
           <Route
+            path="/parent/nuts"
+            element={
+              <ProtectedRoute requireRole="parent">
+                <ParentNutsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/parent/ai-command"
             element={
               <ProtectedRoute requireRole="parent">
@@ -103,6 +113,14 @@ export default function App() {
             element={
               <ProtectedRoute requireRole={["child", "teen"]}>
                 <GoalsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/child/nuts"
+            element={
+              <ProtectedRoute requireRole={["child", "teen"]}>
+                <NutsPage />
               </ProtectedRoute>
             }
           />

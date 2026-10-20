@@ -19,10 +19,11 @@ from app.models.access_request import AccessRequest, AccessRequestStatusEnum
 from app.models.card import Card, CardDesignEnum, CardStatusEnum
 from app.models.goal import Goal
 from app.models.limit import Limit, PeriodEnum
-from app.models.loyalty import LoyaltyAccount, LoyaltyHistory
+from app.models.loyalty import LoyaltyAccount
 from app.models.quest import Quest, QuestStatusEnum
 from app.models.transaction import CategoryEnum, Transaction, TransactionStatusEnum
 from app.models.user import Family, RoleEnum, User
+from app.services import loyalty_service
 
 MERCHANTS_BY_CATEGORY = {
     CategoryEnum.food: ["Соседи", "Евроопт", "Школьная столовая"],
@@ -97,7 +98,8 @@ def seed() -> None:
 
         anna_loyalty = LoyaltyAccount(user_id=anna.id, points=0)
         max_loyalty = LoyaltyAccount(user_id=max_.id, points=0)
-        db.add_all([anna_loyalty, max_loyalty])
+        parent_loyalty = LoyaltyAccount(user_id=parent.id, points=0)
+        db.add_all([anna_loyalty, max_loyalty, parent_loyalty])
         db.flush()
 
         # Транзакции за последние ~80 дней на обеих картах.
@@ -123,6 +125,13 @@ def seed() -> None:
                     )
                 )
         db.add_all(transactions)
+        db.flush()
+
+        # Кешбэк орешками за уже совершённые операции — чтобы у ребёнка и подростка
+        # был непустой счёт орешков сразу после сида.
+        for tx in transactions:
+            owner_id = anna.id if tx.card_id == anna_card.id else max_.id
+            loyalty_service.award_cashback(db, owner_id, tx.category, tx.amount)
 
         # Лимиты.
         db.add(Limit(child_id=anna.id, category=CategoryEnum.sweets, amount=50.0, period=PeriodEnum.week))
@@ -156,9 +165,11 @@ def seed() -> None:
         )
         db.add_all([quest1, quest2, quest3])
 
-        # Начислим баллы за уже выполненный quest2.
-        anna_loyalty.points += quest2.reward_points
-        db.add(LoyaltyHistory(account_id=anna_loyalty.id, delta=quest2.reward_points, reason=f"Квест выполнен: {quest2.title}"))
+        # Начислим орешки за уже выполненный quest2.
+        loyalty_service.award_points(db, anna.id, quest2.reward_points, reason=f"Квест выполнен: {quest2.title}")
+
+        # У родителя тоже есть счёт орешков — свои баллы копятся отдельно от детских.
+        loyalty_service.award_points(db, parent.id, 40, reason="Кешбэк 5% за покупки семьи")
 
         # Цели накопления.
         db.add(Goal(child_id=anna.id, title="Новый велосипед", target_amount=300.0, current_amount=75.0))

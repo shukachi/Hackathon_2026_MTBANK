@@ -95,7 +95,7 @@ export default function QuestsManagePage() {
                   <input id="quest-title" value={title} onChange={(e) => setTitle(e.target.value)} required />
                 </div>
                 <div className="form-field">
-                  <label htmlFor="quest-reward">Баллы награды</label>
+                  <label htmlFor="quest-reward">Награда орешками</label>
                   <input id="quest-reward" type="number" min="0" value={reward} onChange={(e) => setReward(e.target.value)} />
                 </div>
               </div>

@@ -3,10 +3,12 @@ import type { FormEvent } from "react";
 import AppShell from "../../components/layout/AppShell";
 import CardView from "../../components/cards/CardView";
 import TransactionList from "../../components/transactions/TransactionList";
+import PointsWidget from "../../components/loyalty/PointsWidget";
 import { useAuth } from "../../context/AuthContext";
 import { useOwnCard } from "../../hooks/useOwnCard";
 import * as transactionsApi from "../../api/transactions";
-import type { SimulateResult, Transaction } from "../../types";
+import * as loyaltyApi from "../../api/loyalty";
+import type { Loyalty, SimulateResult, Transaction } from "../../types";
 import { childNav } from "./nav";
 import { CATEGORIES, categoryLabel } from "../../categories";
 
@@ -16,6 +18,9 @@ export default function Home() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loadingTx, setLoadingTx] = useState(true);
   const [txError, setTxError] = useState<string | null>(null);
+
+  const [loyalty, setLoyalty] = useState<Loyalty | null>(null);
+  const [loadingLoyalty, setLoadingLoyalty] = useState(true);
 
   const [amount, setAmount] = useState("10");
   const [category, setCategory] = useState<string>(CATEGORIES[0]);
@@ -43,6 +48,26 @@ export default function Home() {
     };
   }, [user]);
 
+  // Счёт орешков ребёнка — виден сразу на главной.
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    loyaltyApi
+      .getLoyalty(user.id)
+      .then((data) => {
+        if (!cancelled) setLoyalty(data);
+      })
+      .catch(() => {
+        // Не блокируем главную, если счёт орешков недоступен.
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingLoyalty(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
   const handleSimulate = async (e: FormEvent) => {
     e.preventDefault();
     if (!card) return;
@@ -58,6 +83,14 @@ export default function Home() {
       });
       setSimResult(res);
       setTransactions((prev) => [res.transaction, ...prev]);
+
+      // Кешбэк изменил баланс орешков — перезапрашиваем счёт.
+      if (res.cashback_points) {
+        loyaltyApi
+          .getLoyalty(user!.id)
+          .then((data) => setLoyalty(data))
+          .catch(() => {});
+      }
     } catch (e) {
       setSimError(e instanceof Error ? e.message : "Не удалось выполнить покупку");
     } finally {
@@ -118,7 +151,14 @@ export default function Home() {
           {simResult && (
             <div className={`alert ${simResult.blocked ? "alert-error" : "alert-success"}`} style={{ marginTop: 12 }}>
               {!simResult.blocked ? (
-                <>Покупка одобрена на сумму {simResult.transaction.amount.toFixed(2)} BYN.</>
+                <>
+                  Покупка одобрена на сумму {simResult.transaction.amount.toFixed(2)} BYN.
+                  {simResult.cashback_points ? (
+                    <> Кешбэк: +{simResult.cashback_points} орешков.</>
+                  ) : (
+                    <> По этой категории кешбэка нет.</>
+                  )}
+                </>
               ) : (
                 <>
                   Покупка заблокирована лимитом.{" "}
@@ -128,6 +168,17 @@ export default function Home() {
             </div>
           )}
         </div>
+      </div>
+
+      <div className="card">
+        <div className="card-title">Мои орешки</div>
+        {loadingLoyalty ? (
+          <div className="muted">Загрузка...</div>
+        ) : loyalty ? (
+          <PointsWidget loyalty={loyalty} onConverted={setLoyalty} />
+        ) : (
+          <div className="empty-state">Счёт орешков пока недоступен</div>
+        )}
       </div>
 
       <div className="card">

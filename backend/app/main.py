@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.db import Base, engine
+from app.db import Base, engine, migrate_schema
 from app.routers import access_requests, ai, auth, cards, family, goals, limits, loyalty, quests, transactions
 from app.services import ollama_client
 
@@ -15,6 +15,7 @@ import app.models  # noqa: F401,E402
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
+    migrate_schema()
     yield
 
 

@@ -563,6 +563,53 @@ p {
   color: inherit;
 }
 
+/* Виджет орешков: блок конвертации в рубли */
+.nut-convert {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+
+.nut-convert-rate {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14px;
+}
+
+.nut-convert-rate strong {
+  color: var(--moby-blue-700);
+}
+
+.nut-convert-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.nut-convert-row .form-field {
+  flex: 1;
+  min-width: 160px;
+}
+
+.nut-convert-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 10px;
+  white-space: nowrap;
+}
+
+.nut-convert-preview strong {
+  font-size: 18px;
+  color: var(--moby-green);
+}
+
 table.simple-table {
   width: 100%;
   border-collapse: collapse;

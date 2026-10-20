@@ -78,8 +78,8 @@ fixture в `tests/conftest.py`), не трогают рабочий `app.db`.
 
 ```
 app/
-  main.py          # FastAPI app, CORS, роуты, lifespan (create_all)
-  db.py             # SQLAlchemy engine/session
+  main.py          # FastAPI app, CORS, роуты, lifespan (create_all + migrate_schema)
+  db.py             # SQLAlchemy engine/session + migrate_schema (добавление новых колонок)
   seed.py           # ручной скрипт демо-данных (python -m app.seed)
   models/           # SQLAlchemy ORM-модели
   schemas/          # Pydantic-схемы запросов/ответов
@@ -87,6 +87,7 @@ app/
                      # loyalty, access_requests, ai
   services/
     limits_engine.py     # проверка трат против лимитов
+    loyalty_service.py   # орешки: кешбэк, награды за квесты, конвертация в рубли
     ollama_client.py     # клиент к локальной Ollama (graceful fallback -> None)
     rag.py                # простой keyword-RAG по транзакциям для /ai/chat
     nl_command_parser.py  # LLM JSON-парсинг команды родителя + rule-based fallback
@@ -96,6 +97,33 @@ app/
     deps.py            # get_current_user / get_current_parent / get_child_owned_by_parent
 tests/              # pytest, TestClient, отдельная test.db
 ```
+
+## Система орешков (программа лояльности)
+
+Баллы в интерфейсе называются **орешками**. Правила — в `app/services/loyalty_service.py`
+(единая точка правды, константы `POINTS_PER_BYN` и `CASHBACK_RATE`).
+
+| Правило | Значение |
+|---|---|
+| Курс конвертации | **10 орешков = 1 BYN** (конвертировать можно кратное 10) |
+| Кешбэк | **5%** от суммы операции в семейных категориях: еда, сладости, игрушки, образование, развлечения |
+| Без кешбэка | игры, подписки, прочее |
+| Награды за квесты | столько орешков, сколько задал родитель (`Quest.reward_points`) |
+| Минимум за операцию | 1 орешек, иначе копейки не набегают |
+| Заблокированные лимитом операции | кешбэк **не начисляется** |
+
+Орешки копятся **раздельно** у ребёнка и у родителя (ТЗ п.4.3) — у каждого свой
+`LoyaltyAccount`. Деньги за конвертацию попадают на тот же счёт в поле `converted_byn`
+(в прототипе нет реального банковского счёта, поэтому это витринный баланс в профиле
+лояльности).
+
+Роуты:
+
+- `GET /loyalty/{user_id}` — счёт орешков (свой всегда; чужой — только родителю своей семьи);
+- `POST /loyalty/convert` — конвертация: `{"points": 50}` → 5.00 BYN.
+
+Ответ `GET /loyalty/{user_id}` содержит `points_per_byn` — курс приходит с сервера,
+фронтенд не хардкодит его.
 
 ## AI-слой и Ollama
 

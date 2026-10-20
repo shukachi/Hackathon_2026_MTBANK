@@ -23,7 +23,7 @@ export default function QuestBoard({ quests, onComplete, completing }: QuestBoar
                 <div className="muted">{quest.description}</div>
               </div>
               <div className="stack" style={{ alignItems: "flex-end", gap: 8 }}>
-                <span className="badge badge-warning">+{quest.reward_points} баллов</span>
+                <span className="badge badge-warning">+{quest.reward_points} орешков</span>
                 {done ? (
                   <span className="badge badge-success">Выполнено</span>
                 ) : onComplete ? (
