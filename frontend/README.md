@@ -1,0 +1,69 @@
+# Moby Family — Frontend
+
+React + TypeScript + Vite SPA для прототипа «Детско-семейный банкинг в Moby» (хакатон МТБанк). Этот каталог — только фронтенд; backend разрабатывается отдельно по общему API-контракту (см. `../plan.md`, раздел 2.2).
+
+## Стек
+
+- React 19 + TypeScript, собрано Vite.
+- Роутинг — `react-router-dom`.
+- HTTP — обёртка над `fetch` с `credentials: 'include'`: авторизация полностью на httpOnly cookie, которую ставит backend при `/auth/login` и `/auth/register`. Токен/сессия на фронтенде нигде в localStorage не хранится.
+
+## Установка и запуск
+
+```bash
+cd frontend
+npm install
+cp .env.example .env   # при необходимости поменять VITE_API_URL
+npm run dev             # http://localhost:5173
+```
+
+По умолчанию `.env` уже содержит `VITE_API_URL=http://localhost:8000` — адрес backend FastAPI. Если backend слушает другой порт/хост, поменяйте значение в `.env`.
+
+### Сборка
+
+```bash
+npm run build     # tsc -b && vite build — проверяет типы и собирает dist/
+npm run preview    # предпросмотр собранного dist/
+```
+
+## Структура
+
+```
+src/
+  api/            fetch-обёртки по одному модулю на группу эндпоинтов (auth, families, cards, transactions, limits, goals, quests, loyalty, accessRequests, ai)
+  context/        AuthContext (текущий пользователь, login/register/logout, GET /auth/me при старте), FamilyContext (кэш детей семьи в браузере — см. ниже)
+  components/     переиспользуемые UI-блоки (CardView, TransactionList, LimitEditor, GoalProgress, QuestBoard, PointsWidget, AccessRequestList, ChatWidget, ProtectedRoute, AppShell)
+  pages/
+    Auth/                 LoginPage, RegisterPage (регистрация — только для родителя)
+    Onboarding/           3-шаговый визард подключения ребёнка (возраст → согласие → выпуск карты)
+    ParentDashboard/      Overview, LimitsPage, AccessRequestsPage, QuestsManagePage, AiCommandPage
+    ChildDashboard/        Home, GoalsPage, QuestsPage, RequestAccessPage, AiChatPage
+```
+
+## Маршруты (для ручного прогона демо)
+
+| Путь | Доступ | Назначение |
+|---|---|---|
+| `/login` | любой | вход по логину/паролю |
+| `/register` | любой | регистрация родителя (единственная точка саморегистрации) |
+| `/parent` | parent | обзор семьи — карточки детей, баланс/статус карты, последние операции, CTA «Подключить ребёнка» |
+| `/parent/onboarding` | parent | визард: выбор возраста → согласие → выпуск карты (временный пароль ребёнка показывается один раз) |
+| `/parent/limits` | parent | просмотр и настройка лимитов по категориям для выбранного ребёнка |
+| `/parent/access-requests` | parent | список запросов доступа от детей, approve/deny |
+| `/parent/quests` | parent | создание квестов для ребёнка и просмотр их статуса |
+| `/parent/ai-command` | parent | текстовая команда на естественном языке → превью от AI → подтверждение применения лимита |
+| `/child` | child/teen | баланс, карта, последние траты, демо-кнопка «Совершить тестовую покупку» (approved/blocked_by_limit) |
+| `/child/goals` | child/teen | цели накопления, прогресс-бар, пополнение |
+| `/child/quests` | child/teen | список квестов, кнопка «Выполнить» |
+| `/child/request-access` | child/teen | форма запроса доступа к функции (подписки, накопительный продукт и т.д.) |
+| `/child/ai-chat` | child/teen | чат с AI-ассистентом про свои траты |
+
+`ProtectedRoute` редиректит неавторизованных на `/login`, а пользователей с неподходящей ролью — на их собственный дашборд (`/parent` или `/child`).
+
+## Известные допущения / TODO (контрактные пробелы, не ограничивающие сборку)
+
+- В API-контракте нет эндпоинта «список детей семьи». Чтобы `ParentDashboard/Overview` и страницы лимитов/квестов могли работать с несколькими детьми после перезагрузки страницы, фронтенд кэширует детей, возвращённых `POST /family/onboarding`, в `localStorage` (ключ `moby-family-children:<family_id>`) — это только витринные данные для UI, не токены и не секреты. Если backend добавит `GET /family/children` (или аналог), эту логику в `FamilyContext.tsx` нужно заменить на реальный запрос.
+- Аналогично, в контракте нет «получить карту текущего пользователя» эндпоинта для `ChildDashboard/Home`. Хук `src/hooks/useOwnCard.ts` пытается взять карту из `user.card`/`user.card_id` (на случай, если backend решит отдавать их в `GET /auth/me`), иначе показывает явный empty-state вместо падения.
+- Все страницы обрабатывают состояния загрузки и ошибок (нет «белого экрана»), ошибки 401/403/400 показываются текстом из `detail` backend-а (см. `src/api/client.ts`).
+- **Не проверено с реальным backend** — backend разрабатывается параллельно другим агентом на том же контракте и на момент написания фронтенда ещё не был поднят на `http://localhost:8000`. Фронтенд собирается и визуально корректен (`npm run build` зелёный, `npm run dev` отдаёт корректный HTML), но end-to-end прогон (регистрация → онбординг → лимиты → демо-покупка → AI) нужно сделать после того, как backend будет запущен — это задача координатора/следующего шага.
+- AI-чат и AI-команды родителя рассчитаны на точный ответ backend (`{reply}` / `{action, parsed, preview_text}`); если Ollama на backend недоступен и он отдаёт fallback-текст — фронтенд просто отрисует его как обычный ответ, никакой дополнительной обработки не требуется.
