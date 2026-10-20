@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.db import Base, engine
 from app.routers import access_requests, ai, auth, cards, family, goals, limits, loyalty, quests, transactions
+from app.services import ollama_client
 
 # Импорт app.models регистрирует все таблицы в Base.metadata перед create_all.
 import app.models  # noqa: F401,E402
@@ -46,4 +47,15 @@ app.include_router(ai.router)
 
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok"}
+    """Базовый статус + проверка готовности локального AI-слоя (Ollama).
+
+    `ollama.available` — отвечает ли сервис; `ollama.model_present` — скачана ли
+    модель из MODEL_NAME. Значения `false` не ломают backend: AI-роуты в этом
+    случае уходят в rule-based fallback.
+    """
+    ollama = ollama_client.status()
+    return {
+        "status": "ok",
+        "ai_ready": bool(ollama["available"] and ollama["model_present"]),
+        "ollama": ollama,
+    }
