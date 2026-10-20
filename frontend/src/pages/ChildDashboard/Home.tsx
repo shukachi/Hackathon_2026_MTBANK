@@ -170,7 +170,7 @@ export default function Home() {
                 <select id="sim-card" value={activeCard?.id ?? ""} onChange={(e) => setSelectedCardId(e.target.value)}>
                   {cards.map((c, idx) => (
                     <option key={c.id} value={c.id}>
-                      {idx === 0 ? "Основная" : `Дополнительная ${idx}`} — {c.masked_number} ({(c.balance ?? 0).toFixed(2)} BYN)
+                      {idx === 0 ? "Основная" : `Дополнительная ${idx}`} · {(c.balance ?? 0).toFixed(0)} BYN
                     </option>
                   ))}
                 </select>

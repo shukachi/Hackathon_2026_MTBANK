@@ -683,3 +683,254 @@ table.simple-table td {
 table.simple-table tr:last-child td {
   border-bottom: none;
 }
+
+/* Прирост/списание орешков не должно рваться на две строки */
+.nut-delta {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Карточка квеста: на десктопе — две колонки, на телефоне — в столбик */
+.quest-card {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px;
+}
+
+.quest-card-body {
+  min-width: 0;
+}
+
+.quest-card-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Список операций: карточки для телефона, таблица для десктопа */
+.txn-cards {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.txn-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.txn-card-head {
+  align-items: baseline;
+  gap: 8px;
+}
+
+.txn-card-category {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.txn-card-amount {
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.txn-card-meta {
+  font-size: 12px;
+  gap: 8px;
+}
+
+.txn-card-meta .muted {
+  font-size: 12px;
+}
+
+.txn-card-meta .muted:last-child {
+  white-space: nowrap;
+}
+
+.txn-card .badge {
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+/* ── Телефон ────────────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  /* Шапка: логотип не переносится, имя обрезается многоточием */
+  .app-header {
+    padding: 10px 14px;
+    gap: 10px;
+  }
+
+  .app-logo {
+    font-size: 16px;
+    gap: 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .app-logo .wave {
+    width: 24px;
+    height: 24px;
+  }
+
+  .app-header-right {
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .app-header-user {
+    min-width: 0;
+    max-width: 130px;
+  }
+
+  .app-header-user .name {
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  .app-header-user .role {
+    font-size: 10px;
+  }
+
+  /* Навигация — одна прокручиваемая строка вместо трёх рядов */
+  .app-nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -14px;
+    padding: 0 14px 2px;
+  }
+
+  .app-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .app-nav a {
+    flex-shrink: 0;
+    white-space: nowrap;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 16px;
+  }
+
+  /* Тап-цели не меньше 44px — по ним больно попасть пальцем */
+  .btn {
+    min-height: 44px;
+    padding: 12px 18px;
+  }
+
+  /* Ссылка «Зарегистрироваться» — тоже крупная тап-цель */
+  .auth-register-link {
+    display: inline-block;
+    min-height: 44px;
+    line-height: 44px;
+  }
+
+  .btn-sm {
+    min-height: 44px;
+    padding: 10px 14px;
+  }
+
+  /* Поля ввода: 16px, иначе iOS зумит страницу при фокусе.
+     Селектор общий, а не только .form-field — поля с инлайновыми стилями
+     (например, «Сумма пополнения») тоже должны быть удобными для пальца. */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+    min-height: 44px;
+  }
+
+  .form-field input,
+  .form-field select,
+  .form-field textarea {
+    font-size: 16px;
+    min-height: 44px;
+  }
+
+  .app-body {
+    padding: 16px 14px;
+    gap: 16px;
+  }
+
+  .card {
+    padding: 16px;
+    border-radius: var(--radius-md);
+  }
+
+  h1 {
+    font-size: 20px !important;
+  }
+
+  /* Таблица операций на телефоне не помещается — показываем карточки */
+  .txn-table {
+    display: none;
+  }
+
+  .txn-cards {
+    display: flex;
+  }
+
+  /* Блок конвертации орешков — в одну колонку */
+  .nut-convert-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* Квест: заголовок и награда — в столбик, кнопка на всю ширину */
+  .quest-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .quest-card-side {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .quest-card-side .btn {
+    flex: 1;
+    min-width: 140px;
+  }
+
+  .nut-convert-preview {
+    padding-bottom: 0;
+  }
+
+  .card-details-row {
+    font-size: 13px;
+  }
+
+  .empty-state {
+    padding: 24px 12px;
+  }
+}
+
+/* Очень узкие экраны (iPhone SE и уже) */
+@media (max-width: 380px) {
+  .app-logo {
+    font-size: 15px;
+  }
+
+  .app-header-user {
+    max-width: 96px;
+  }
+}

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -16,6 +17,21 @@ interface AppShellProps {
 export default function AppShell({ children, navItems = [] }: AppShellProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const navRef = useRef<HTMLElement>(null);
+
+  // На телефоне меню прокручивается в одну строку, и активный пункт может
+  // оказаться за экраном — подкручиваем его в зону видимости.
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const active = nav.querySelector<HTMLElement>("a.active");
+    if (!active) return;
+    const navRect = nav.getBoundingClientRect();
+    const activeRect = active.getBoundingClientRect();
+    if (activeRect.left < navRect.left || activeRect.right > navRect.right) {
+      active.scrollIntoView({ block: "nearest", inline: "center" });
+    }
+  }, [navItems]);
 
   const handleLogout = async () => {
     await logout();
@@ -43,7 +59,7 @@ export default function AppShell({ children, navItems = [] }: AppShellProps) {
       </header>
       <div className="app-body">
         {navItems.length > 0 && (
-          <nav className="app-nav">
+          <nav className="app-nav" ref={navRef}>
             {navItems.map((item) => (
               <NavLink
                 key={item.to}

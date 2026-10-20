@@ -56,8 +56,11 @@ export default function LoginPage() {
           {submitting ? "Входим..." : "Войти"}
         </button>
 
-        <p className="muted" style={{ textAlign: "center" }}>
-          Впервые здесь? <Link to="/register">Зарегистрироваться как родитель</Link>
+        <p className="muted auth-register-hint" style={{ textAlign: "center" }}>
+          Впервые здесь?{" "}
+          <Link to="/register" className="auth-register-link">
+            Зарегистрироваться как родитель
+          </Link>
         </p>
       </form>
     </div>

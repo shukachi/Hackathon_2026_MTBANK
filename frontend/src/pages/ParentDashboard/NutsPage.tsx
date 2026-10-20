@@ -100,7 +100,10 @@ export default function NutsPage() {
                     {loyalty.history.slice(0, 3).map((entry, idx) => (
                       <div key={idx} className="row-between" style={{ fontSize: 13 }}>
                         <span className="muted">{entry.reason}</span>
-                        <span style={{ fontWeight: 700, color: entry.delta >= 0 ? "var(--moby-green)" : "var(--moby-red)" }}>
+                        <span
+                          className="nut-delta"
+                          style={{ fontWeight: 700, color: entry.delta >= 0 ? "var(--moby-green)" : "var(--moby-red)" }}
+                        >
                           {entry.delta >= 0 ? "+" : ""}
                           {entry.delta} орешков
                         </span>
