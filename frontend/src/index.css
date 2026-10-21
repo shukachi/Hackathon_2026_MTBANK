@@ -934,3 +934,96 @@ table.simple-table tr:last-child td {
     max-width: 96px;
   }
 }
+
+/* ===== Вкладка Step: генератор временного QR ===== */
+
+/* Контейнер самого QR-кода: белый квадрат с рамкой, чтобы код было видно
+   и на тёмном фоне, и не сливался с карточкой. */
+.qr-canvas {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  line-height: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.qr-canvas svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 240px;
+}
+
+/* Обратный отсчёт до истечения кода */
+.qr-timer {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--moby-blue-700);
+  font-variant-numeric: tabular-nums;
+}
+
+.qr-timer.expired {
+  color: #9c2327;
+}
+
+/* Строка в списке моих QR-кодов */
+.qr-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+}
+
+.qr-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.qr-row-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  flex-wrap: wrap;
+}
+
+.qr-row-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  /* На телефоне строка QR-кода становится вертикальной: кнопки — во всю ширину. */
+  .qr-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .qr-row-actions {
+    width: 100%;
+  }
+
+  .qr-row-actions .btn {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .qr-canvas {
+    align-self: center;
+  }
+
+  .qr-canvas svg {
+    max-width: 200px;
+  }
+}

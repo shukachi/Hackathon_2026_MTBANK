@@ -19,6 +19,7 @@ import Home from "./pages/ChildDashboard/Home";
 import GoalsPage from "./pages/ChildDashboard/GoalsPage";
 import NutsPage from "./pages/ChildDashboard/NutsPage";
 import QuestsPage from "./pages/ChildDashboard/QuestsPage";
+import StepPage from "./pages/ChildDashboard/StepPage";
 import RequestAccessPage from "./pages/ChildDashboard/RequestAccessPage";
 import AiChatPage from "./pages/ChildDashboard/AiChatPage";
 
@@ -138,6 +139,14 @@ export default function App() {
             element={
               <ProtectedRoute requireRole={["child", "teen"]}>
                 <QuestsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/child/step"
+            element={
+              <ProtectedRoute requireRole={["child", "teen"]}>
+                <StepPage />
               </ProtectedRoute>
             }
           />

@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.db import Base, engine, migrate_schema
-from app.routers import access_requests, ai, auth, cards, family, goals, limits, loyalty, quests, transactions
+from app.routers import access_requests, ai, auth, cards, family, goals, limits, loyalty, qr_payment, quests, transactions
 from app.services import ollama_client
 
 # Импорт app.models регистрирует все таблицы в Base.metadata перед create_all.
@@ -42,6 +42,7 @@ app.include_router(limits.router)
 app.include_router(goals.router)
 app.include_router(quests.router)
 app.include_router(loyalty.router)
+app.include_router(qr_payment.router)
 app.include_router(access_requests.router)
 app.include_router(ai.router)
 

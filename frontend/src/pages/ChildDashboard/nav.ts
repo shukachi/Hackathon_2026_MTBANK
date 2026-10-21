@@ -6,6 +6,7 @@ export function childNav(role: Role) {
     { to: "/child/nuts", label: "Мои орешки" },
     { to: "/child/goals", label: "Цели" },
     { to: "/child/quests", label: "Квесты" },
+    { to: "/child/step", label: "Step" },
     { to: "/child/request-access", label: "Запросить доступ" },
     { to: "/child/ai-chat", label: "Спросить AI" },
   ];
