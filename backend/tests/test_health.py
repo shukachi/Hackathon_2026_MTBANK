@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 
+from app.core.config import settings
 from app.services import ollama_client
 
 
@@ -13,7 +14,8 @@ def test_health_reports_ollama_status(client: TestClient):
     assert "ai_ready" in body
 
     ollama = body["ollama"]
-    assert ollama["model"] == "qwen2.5:1.5b"
+    # Модель берётся из конфига — тест не должен ломаться при её смене.
+    assert ollama["model"] == settings.MODEL_NAME
     assert ollama["url"]
     # Доступность Ollama на тестовой машине не гарантирована — проверяем только форму ответа.
     assert isinstance(ollama["available"], bool)

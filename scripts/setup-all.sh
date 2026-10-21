@@ -14,9 +14,9 @@ log()  { printf '\n\033[1;36m==> %s\033[0m\n' "$*"; }
 ok()   { printf '\033[1;32m  ✓\033[0m %s\n' "$*"; }
 die()  { printf '\033[1;31m  ✗ %s\033[0m\n' "$*" >&2; exit 1; }
 
-# --- 1. Ollama + qwen2.5:1.5b (обязательный шаг) -----------------------------
+# --- 1. Ollama + qwen3:8b (обязательный шаг) --------------------------------
 
-log "Шаг 1/5: Ollama + модель qwen2.5:1.5b"
+log "Шаг 1/5: Ollama + модель qwen3:8b"
 bash scripts/setup-ollama.sh
 ok "Ollama готова"
 

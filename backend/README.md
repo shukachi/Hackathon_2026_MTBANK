@@ -6,7 +6,7 @@ FastAPI backend для прототипа «Детско-семейный бан
 ## Стек
 
 FastAPI, SQLAlchemy (SQLite по умолчанию), Pydantic v2, JWT (pyjwt) в httpOnly cookie,
-bcrypt для хэширования паролей, AI-слой на локальной Ollama (`qwen2.5:1.5b`) с graceful
+bcrypt для хэширования паролей, AI-слой на локальной Ollama (`qwen3:8b`) с graceful
 fallback на rule-based парсер, если сервис недоступен.
 
 ## Установка и запуск (Windows, git bash)
@@ -19,7 +19,7 @@ bash ../scripts/setup-ollama.sh
 ```
 
 Скрипт скачает и поставит Ollama (если её нет), поднимет сервис, скачает модель
-`qwen2.5:1.5b` и проверит, что она отвечает. Полный чеклист установки — в
+`qwen3:8b` и проверит, что она отвечает. Полный чеклист установки — в
 [`../README.md`](../README.md).
 
 ```bash
@@ -150,7 +150,7 @@ tests/              # pytest, TestClient, отдельная test.db
 
 ## AI-слой и Ollama
 
-Ollama и модель `qwen2.5:1.5b` — **обязательная** часть установки (см. `../scripts/setup-ollama.sh`
+Ollama и модель `qwen3:8b` — **обязательная** часть установки (см. `../scripts/setup-ollama.sh`
 и раздел «Обязательные шаги установки» в `../README.md`): AI-сценарии демо должны идти через
 реальную локальную модель, а не через rule-based fallback.
 
@@ -161,7 +161,7 @@ Ollama и модель `qwen2.5:1.5b` — **обязательная** част�
 в этом случае автоматически переключаются на rule-based fallback — задокументировано
 в коде и проверено тестами (`tests/test_ai_command_parser.py`) и вручную (см. ниже).
 
-Модель задаётся в `.env` через `MODEL_NAME` (по умолчанию `qwen2.5:1.5b`), адрес — через
+Модель задаётся в `.env` через `MODEL_NAME` (по умолчанию `qwen3:8b`), адрес — через
 `OLLAMA_URL` (по умолчанию `http://localhost:11434`).
 
 Проверить готовность AI-слоя:

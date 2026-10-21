@@ -1,4 +1,4 @@
-﻿# Mandatory install step (Windows, PowerShell): Ollama + qwen2.5:1.5b.
+﻿# Mandatory install step (Windows, PowerShell): Ollama + qwen3:8b.
 #
 #   powershell -ExecutionPolicy Bypass -File scripts/setup-ollama.ps1
 #
@@ -9,7 +9,7 @@
 # UTF-8 scripts without a BOM and mangles non-ASCII output in the console.
 $ErrorActionPreference = "Stop"
 
-$Model      = if ($env:OLLAMA_MODEL) { $env:OLLAMA_MODEL } else { "qwen2.5:1.5b" }
+$Model      = if ($env:OLLAMA_MODEL) { $env:OLLAMA_MODEL } else { "qwen3:8b" }
 $OllamaPort = 11434
 
 function Log($msg)  { Write-Host "[ollama] $msg" -ForegroundColor Cyan }
@@ -84,7 +84,7 @@ $already = $tags.models | Where-Object { $_.name -eq $Model -or $_.model -eq $Mo
 if ($already) {
     Ok "Model $Model is already downloaded"
 } else {
-    Log "Pulling model $Model (~1 GB, one-time download)..."
+    Log "Pulling model $Model (~5 GB, one-time download)..."
     & $ollama pull $Model
     if ($LASTEXITCODE -ne 0) { Die "Could not pull model $Model" }
     Ok "Model $Model downloaded"
@@ -92,16 +92,17 @@ if ($already) {
 
 # --- 4. Verify the model actually answers ------------------------------------
 
-Log "Checking inference..."
+Log "Checking inference (8B on CPU takes ~15s, that is normal)..."
 $body = @{
     model    = $Model
     messages = @(@{ role = "user"; content = "Say OK" })
     stream   = $false
+    think    = $false
 } | ConvertTo-Json -Depth 5
 
 try {
     $resp = Invoke-RestMethod -Uri "http://localhost:$OllamaPort/api/chat" -Method Post `
-        -Body $body -ContentType "application/json" -TimeoutSec 180
+        -Body $body -ContentType "application/json" -TimeoutSec 300
 } catch {
     Die "Chat request failed: $_"
 }

@@ -1,6 +1,6 @@
 """Тонкий клиент к локальной Ollama.
 
-Ollama и модель qwen2.5:1.5b — обязательная часть установки (см. scripts/setup-ollama.sh
+Ollama и модель — обязательная часть установки (см. scripts/setup-ollama.sh
 и раздел «Установка» в README.md). Но backend всё равно не должен падать, если сервис
 недоступен: функция ОБЯЗАНА graceful-fallback'ить на None при любой ошибке сети/таймаута,
 чтобы демо не падало без локального AI-сервиса.
@@ -15,7 +15,14 @@ def _timeout() -> httpx.Timeout:
 
 
 def chat(system_prompt: str, user_message: str) -> str | None:
-    """Пытается получить ответ от Ollama /api/chat. Возвращает None при любой ошибке."""
+    """Пытается получить ответ от Ollama /api/chat. Возвращает None при любой ошибке.
+
+    У моделей семейства qwen3 есть режим «размышления»: модель сначала пишет
+    черновик рассуждения в отдельное поле `thinking`, а готовый ответ — в
+    `content`. Флаг `think` управляет этим режимом (`settings.OLLAMA_THINK`).
+    Мы читаем только `content` — черновик рассуждения пользователю показывать
+    не нужно, а при `think=false` его и не будет.
+    """
     try:
         with httpx.Client(timeout=_timeout()) as client:
             response = client.post(
@@ -27,6 +34,9 @@ def chat(system_prompt: str, user_message: str) -> str | None:
                         {"role": "user", "content": user_message},
                     ],
                     "stream": False,
+                    # Поддерживается начиная с Ollama 0.9; на старых версиях
+                    # лишний параметр просто игнорируется.
+                    "think": settings.OLLAMA_THINK,
                 },
             )
             response.raise_for_status()

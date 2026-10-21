@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Обязательный шаг установки: Ollama + локальная модель qwen2.5:1.5b.
+# Обязательный шаг установки: Ollama + локальная модель qwen3:8b.
 #
 # Скрипт идемпотентен: если Ollama уже установлена и модель уже скачана —
 # ничего не переустанавливает, только проверяет. Запуск:
@@ -9,7 +9,7 @@
 # Поддерживаются Windows (git bash), Linux, macOS.
 set -euo pipefail
 
-MODEL="${OLLAMA_MODEL:-qwen2.5:1.5b}"
+MODEL="${OLLAMA_MODEL:-qwen3:8b}"
 OLLAMA_PORT="${OLLAMA_PORT:-11434}"
 
 log()  { printf '\033[1;34m[ollama]\033[0m %s\n' "$*"; }
@@ -108,16 +108,16 @@ model_present() {
 if model_present; then
   ok "Модель ${MODEL} уже скачана"
 else
-  log "Скачиваю модель ${MODEL} (это ~1 ГБ, один раз)..."
+  log "Скачиваю модель ${MODEL} (это ~5 ГБ, один раз)..."
   "$OLLAMA_BIN" pull "$MODEL"
   ok "Модель ${MODEL} скачана"
 fi
 
 # --- 4. Проверить, что модель реально отвечает ------------------------------
 
-log "Проверяю инференс..."
-REPLY="$(curl -fsS -m 120 "http://localhost:${OLLAMA_PORT}/api/chat" \
-  -d "{\"model\":\"${MODEL}\",\"messages\":[{\"role\":\"user\",\"content\":\"Say OK\"}],\"stream\":false}" \
+log "Проверяю инференс (8B на CPU думает ~15 секунд, это нормально)..."
+REPLY="$(curl -fsS -m 300 "http://localhost:${OLLAMA_PORT}/api/chat" \
+  -d "{\"model\":\"${MODEL}\",\"messages\":[{\"role\":\"user\",\"content\":\"Say OK\"}],\"stream\":false,\"think\":false}" \
   | tr -d '\n' | sed -n 's/.*"content":"\([^"]*\)".*/\1/p' || true)"
 
 if [ -z "$REPLY" ]; then
