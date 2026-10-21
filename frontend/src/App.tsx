@@ -5,6 +5,8 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 import LoginPage from "./pages/Auth/LoginPage";
 import RegisterPage from "./pages/Auth/RegisterPage";
+import VerifyEmailPage from "./pages/Auth/VerifyEmailPage";
+import TermsPage from "./pages/Auth/TermsPage";
 import OnboardingWizard from "./pages/Onboarding/OnboardingWizard";
 
 import Overview from "./pages/ParentDashboard/Overview";
@@ -43,6 +45,7 @@ export default function App() {
           <Route path="/" element={<RootRedirect />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/verify" element={<VerifyEmailPage />} />
 
           <Route
             path="/parent/onboarding"

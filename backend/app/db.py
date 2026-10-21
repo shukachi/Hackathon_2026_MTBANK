@@ -20,7 +20,20 @@ ADDED_COLUMNS: list[tuple[str, str, str]] = [
     # (таблица, колонка, SQL-тип)
     ("loyalty_accounts", "converted_byn", "FLOAT DEFAULT 0.0"),
     ("cards", "balance", "FLOAT DEFAULT 0.0"),
+    ("users", "email", "VARCHAR(255)"),
 ]
+
+
+# Импортируем модели здесь, чтобы SQLAlchemy знал о них при create_all
+from app.models import user  # noqa: E402
+from app.models import card  # noqa: E402
+from app.models import transaction  # noqa: E402
+from app.models import limit  # noqa: E402
+from app.models import goal  # noqa: E402
+from app.models import quest  # noqa: E402
+from app.models import loyalty  # noqa: E402
+from app.models import access_request  # noqa: E402
+from app.models.pending_registration import PendingRegistration  # noqa: E402
 
 
 def migrate_schema() -> None:

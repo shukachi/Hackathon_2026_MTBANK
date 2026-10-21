@@ -9,7 +9,9 @@ interface AuthContextValue {
   loading: boolean;
   error: string | null;
   login: (login: string, password: string) => Promise<User>;
-  register: (login: string, password: string, fullName: string) => Promise<User>;
+  register: (login: string, password: string, confirmPassword: string, fullName: string, email: string) => Promise<authApi.RegisterStartResponse>;
+  confirmRegistration: (login: string, email: string, code: string) => Promise<User>;
+  resendVerificationCode: (login: string, email: string) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
 }
@@ -55,14 +57,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const register = useCallback(async (loginValue: string, password: string, fullName: string) => {
+  // Шаг 1 регистрации: отправка кода верификации. Аккаунт ещё не создан.
+  const register = useCallback(
+    async (
+      loginValue: string,
+      password: string,
+      confirmPassword: string,
+      fullName: string,
+      email: string,
+    ) => {
+      setError(null);
+      try {
+        const result = await authApi.registerStart({
+          login: loginValue,
+          password,
+          confirm_password: confirmPassword,
+          full_name: fullName,
+          email,
+        });
+        return result;
+      } catch (e) {
+        const message = e instanceof Error ? e.message : "Не удалось зарегистрироваться";
+        setError(message);
+        throw e;
+      }
+    },
+    [],
+  );
+
+  // Шаг 2 регистрации: подтверждение кода и завершение. Тут ставится auth-cookie.
+  const confirmRegistration = useCallback(async (loginValue: string, email: string, code: string) => {
     setError(null);
     try {
-      const profile = await authApi.register({ login: loginValue, password, full_name: fullName });
+      const profile = await authApi.registerConfirm({ login: loginValue, email, code });
       setUser(profile);
       return profile;
     } catch (e) {
-      const message = e instanceof Error ? e.message : "Не удалось зарегистрироваться";
+      const message = e instanceof Error ? e.message : "Не удалось подтвердить код";
+      setError(message);
+      throw e;
+    }
+  }, []);
+
+  const resendVerificationCode = useCallback(async (loginValue: string, email: string) => {
+    setError(null);
+    try {
+      await authApi.resendVerificationCode({ login: loginValue, email });
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Не удалось отправить код повторно";
       setError(message);
       throw e;
     }
@@ -81,8 +123,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [loadMe]);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user, loading, error, login, register, logout, refresh }),
-    [user, loading, error, login, register, logout, refresh],
+    () => ({ user, loading, error, login, register, confirmRegistration, resendVerificationCode, logout, refresh }),
+    [user, loading, error, login, register, confirmRegistration, resendVerificationCode, logout, refresh],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

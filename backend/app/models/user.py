@@ -1,4 +1,5 @@
 import enum
+import re
 from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String
@@ -11,6 +12,12 @@ class RoleEnum(str, enum.Enum):
     parent = "parent"
     child = "child"
     teen = "teen"
+
+
+def validate_email(email: str) -> bool:
+    """Simple email validation regex"""
+    pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+    return bool(re.match(pattern, email))
 
 
 class Family(Base):
@@ -35,5 +42,6 @@ class User(Base):
     family_id: Mapped[int] = mapped_column(ForeignKey("families.id"), nullable=False)
     parent_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    email: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     family: Mapped["Family"] = relationship(back_populates="users")
